@@ -13,12 +13,12 @@ const FormSection = styled.section`
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24);
 `;
 
-const NewUserForm = ({ values, errors, touched, status }) => {
+const NewUserForm = ({ values, errors, touched, status, isSubmitting }) => {
   const [newUser, setNewUser] = useState([]);
 
   useEffect(() => {
     if (status) {
-      setNewUser({ ...newUser, status });
+      setNewUser([...newUser, status]);
     }
   }, [status]);
 
@@ -47,7 +47,7 @@ const NewUserForm = ({ values, errors, touched, status }) => {
           />
           <span className="checkmark" />
         </label>
-        <button>Submit</button>
+        <button disabled={isSubmitting}>Submit</button>
       </Form>
       {newUser.map(user => (
         <ul key={user.id}>
@@ -70,24 +70,27 @@ const FormikNewUserForm = withFormik({
     };
   },
   validationSchema: Yup.object().shape({
-    name: Yup.string().required(),
+    name: Yup.string().required('Name is Required'),
     email: Yup.string()
       .email()
-      .required(),
+      .required('A Valid Email is Required'),
     password: Yup.string()
       .min(8)
-      .required()
+      .required('Must Contain at least 8 Characters')
   }),
-  handleSubmit(values, { setStatus }) {
-    // setTimeout(() => {
-    //   if (values.email === 'waffle@syrup.com') {
-    //   } else {
-    //   }
-    // }, 2000);
+  handleSubmit(values, { setStatus, resetForm, setErrors, setSubmitting }) {
+    setTimeout(() => {
+      if(values.email === 'waffle@syrup.com') {
+          setErrors({ email: 'That email is already taken'})
+      } else {
+          resetForm()
+      }
+    }, 2000)
 
     axios
       .post('https://reqres.in/api/users', values)
       .then(res => {
+        console.log(res);
         setStatus(res.data);
       })
       .catch(err => console.log(err.res));
